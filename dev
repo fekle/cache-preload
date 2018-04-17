@@ -16,7 +16,7 @@ case "${1:-}" in
     exec python3 -O ./cache-preload.py ${@:2}
     ;;
   "docker-build")
-    exec docker build --no-cache -t "${DOCKER_IMAGE}" .
+    exec docker build -t "${DOCKER_IMAGE}" .
     ;;
   "docker-push")
     exec docker push "${DOCKER_IMAGE}"
