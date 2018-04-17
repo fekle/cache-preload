@@ -82,7 +82,7 @@ def get_browser(user_agent, window_size, geckodriver_path, log_path):
     return browser
 
 
-@click.command(context_settings={'help_option_names': ['--help', '-h'], 'max_content_width': 128})
+@click.command(context_settings={'help_option_names': ['--help', '-h'], 'max_content_width': 256})
 @click.argument('url', type=click.STRING)
 @click.option('--desktop/--no-desktop', '-d/-nd', is_flag=True, default=True, show_default=True, help='enable desktop browser')
 @click.option('--mobile/--no-mobile', '-m/-nm', is_flag=True, default=False, show_default=True, help='enable mobile browser')

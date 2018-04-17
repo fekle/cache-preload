@@ -31,8 +31,7 @@ Options:
                                   enable desktop browser  [default: True]
   -m, --mobile / -nm, --no-mobile
                                   enable mobile browser  [default: False]
-  -gp, --geckodriver-path PATH    path to geckodriver binary  [default:
-                                  /usr/bin/geckodriver]
+  -gp, --geckodriver-path PATH    path to geckodriver binary  [default: /usr/bin/geckodriver]
   -sd, --screenshot-dir DIRECTORY
                                   save screenshots to directory
   -ld, --log-dir DIRECTORY        save logs to directory
