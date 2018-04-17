@@ -5,6 +5,8 @@ self="${0}"
 workdir="$(dirname "$(realpath "${self}")")"
 cd "${workdir}"
 
+DOCKER_IMAGE="${DOCKER_IMAGE:-cache-preload:latest}"
+
 case "${1:-}" in
   "fmt")
     find . -not -path '*/\.*' -type f -name '*.py' -exec \
@@ -14,14 +16,17 @@ case "${1:-}" in
     exec python3 -O ./cache-preload.py ${@:2}
     ;;
   "docker-build")
-    exec docker build -t cache-preload:latest .
+    exec docker build --no-cache -t "${DOCKER_IMAGE}" .
+    ;;
+  "docker-push")
+    exec docker push "${DOCKER_IMAGE}"
     ;;
   "docker-run")
     exec docker run --rm -t --shm-size=2g \
       --user "$(id -u):$(id -g)" \
       -v "${workdir}:/workdir:rw" \
       --workdir /workdir \
-      cache-preload:latest ${@:2}
+      "${DOCKER_IMAGE}" ${@:2}
     ;;
   *)
     echo "usage: ${self} <fmt|docker-build|docker-run>"
