@@ -1,0 +1,29 @@
+#!/bin/bash
+set -euf
+
+self="${0}"
+workdir="$(dirname "$(realpath "${self}")")"
+cd "${workdir}"
+
+case "${1:-}" in
+  "fmt")
+    find . -not -path '*/\.*' -type f -name '*.py' -exec \
+      yapf -i --style .style.yapf -p -vv {} '+' || true
+    ;;
+  "run")
+    exec python3 -O ./cache-preload.py ${@:2}
+    ;;
+  "docker-build")
+    exec docker build -t cache-preload:latest .
+    ;;
+  "docker-run")
+    exec docker run --rm -t --shm-size=2g \
+      --user "$(id -u):$(id -g)" \
+      -v "${workdir}:/workdir:rw" \
+      --workdir /workdir \
+      cache-preload:latest ${@:2}
+    ;;
+  *)
+    echo "usage: ${self} <fmt|docker-build|docker-run>"
+    ;;
+esac
