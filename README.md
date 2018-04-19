@@ -6,13 +6,12 @@ Writting in Python 3 using selenium and geckodriver.
 
 ### Docker
 The easiest way to run this is by using the pre-built docker image [fekle/cache-preload:latest](https://hub.docker.com/r/fekle/cache-preload/)
-or building the image yourself with `./cli docker-build`. You can then run via `./cli docker-run <cmd>` 
-or simply by running:
+or building the image yourself with `DOCKER_IMAGE_NAME=cache-preload ./cli docker-build`.  You can then run via `./cli docker-run <cmd>`, or simply by running:
 ```bash
 docker run --rm -t --shm-size=2g \
     --user "$(id -u):$(id -g)" \
     -v "$(pwd):/workdir:rw" \
-    cache-preload:latest <cmd>
+    fekle/cache-preload:latest <cmd>
 ```
 
 Notice the `--shm-size=2g` (shared memory size) flag - this is important, as otherwise Firefox will crash.

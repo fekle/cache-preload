@@ -5,7 +5,7 @@ self="${0}"
 workdir="$(dirname "$(realpath "${self}")")"
 cd "${workdir}"
 
-DOCKER_IMAGE="${DOCKER_IMAGE:-cache-preload:latest}"
+DOCKER_IMAGE_NAME="${DOCKER_IMAGE_NAME:-fekle/cache-preload:latest}"
 
 case "${1:-}" in
   "fmt")
@@ -16,17 +16,17 @@ case "${1:-}" in
     exec python3 -O ./cache-preload.py ${@:2}
     ;;
   "docker-build")
-    exec docker build -t "${DOCKER_IMAGE}" .
+    exec docker build -t "${DOCKER_IMAGE_NAME}" .
     ;;
   "docker-push")
-    exec docker push "${DOCKER_IMAGE}"
+    exec docker push "${DOCKER_IMAGE_NAME}"
     ;;
   "docker-run")
     exec docker run --rm -t --shm-size=2g \
       --user "$(id -u):$(id -g)" \
       -v "${workdir}:/workdir:rw" \
       --workdir /workdir \
-      "${DOCKER_IMAGE}" ${@:2}
+      "${DOCKER_IMAGE_NAME}" ${@:2}
     ;;
   *)
     echo "usage: ${self} <fmt|docker-build|docker-run>"

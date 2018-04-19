@@ -29,5 +29,5 @@ RUN useradd -rUm -u 1000 user && mkdir -p /workdir && chown -R user:user /workdi
 USER user
 WORKDIR /workdir
 
-ADD cache-preload.py ./cache-preload.py
-ENTRYPOINT ["/usr/bin/python3", "-O", "/workdir/cache-preload.py"]
+ADD cache-preload.py /opt/cache-preload.py
+ENTRYPOINT ["/usr/bin/python3", "-O", "/opt/cache-preload.py"]
