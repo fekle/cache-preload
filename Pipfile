@@ -7,10 +7,12 @@ name = "pypi"
 
 [packages]
 
-requests = "~=2.18"
 click = "~=6.7"
 selenium = "~=3.11"
 python-slugify = "~=1.2"
+aiohttp = "~=3.1"
+cchardet = "~=2.1"
+
 
 [dev-packages]
 

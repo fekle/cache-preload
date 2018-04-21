@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-
+import asyncio
+import multiprocessing
 import time
 import xml.etree.ElementTree as ET
+from functools import partial
 from pathlib import Path
 from random import randint
 
+import aiohttp
+import async_timeout
 import click
-import requests
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from slugify import slugify
@@ -18,38 +21,50 @@ desktop_useragent = None
 desktop_window_size = [1920, 1080]
 
 
-def get_urls(url, max_depth=32, current_depth=1):
+async def load_sitemaps(url):
+    async with aiohttp.ClientSession() as client:
+        return await get_urls(client, url)
+
+
+async def get_urls(client, url, max_depth=32, current_depth=1):
     urls = []
-    with requests.get(url, stream=True, timeout=10, allow_redirects=True) as r:
-        try:
-            # only use status 200
-            if r.status_code == 200:
-                root = ET.fromstring(r.text)
-                for item in root:
-                    if item.tag.endswith('sitemap'):
-                        # sitemap
-                        if current_depth > max_depth:
-                            print('==> warning: maximum depth of {:d} reached - will not continue to search for site maps'.format(current_depth))
-                            break
 
-                        for prop in item:
-                            if prop.tag.endswith('loc'):
-                                urls += get_urls(prop.text, max_depth, current_depth + 1)
+    try:
+        async with async_timeout.timeout(10):
+            async with client.get(url) as r:
+                # only use status 200
+                if r.status == 200:
+                    root = ET.fromstring(await r.text())
 
-                    elif item.tag.endswith('url'):
-                        # url list
-                        for prop in item:
-                            if prop.tag.endswith('loc'):
-                                urls.append(prop.text)
-            else:
-                print('==> "{:s}" returned status {:d}, skipping'.format(url, r.status_code))
+                    for item in root:
+                        if item.tag.endswith('sitemap'):
+                            # sitemap
+                            if current_depth > max_depth:
+                                print('==> warning: maximum depth of {:d} reached - will not continue to search for site maps'.format(current_depth))
+                                break
 
-            return sorted(set(urls))
-        except (requests.RequestException, requests.ConnectionError, requests.Timeout) as e:
-            print('==> "{:s}" failed with error "{:s}", skipping'.format(url, str(e)))
+                            for prop in item:
+                                if prop.tag.endswith('loc'):
+                                    urls += await get_urls(client, prop.text, max_depth, current_depth + 1)
+
+                        elif item.tag.endswith('url'):
+                            # url list
+                            for prop in item:
+                                if prop.tag.endswith('loc'):
+                                    urls.append(prop.text)
+
+                else:
+                    print('==> "{:s}" returned status {:d}, skipping'.format(url, r.status))
+
+                return sorted(set(urls))
+    except BaseException as ex:
+        print(ex)
+        print('==> "{:s}" failed with error, skipping'.format(url))
 
 
-def do_test(browser, name, url, screenshot_dir):
+def do_test(browser, browser_meta, name, geckodriver_path, screenshot_dir, log_path, url):
+    print('=> visiting "{:s}" with browser "{:s}" ...'.format(url, browser_meta['name']))
+
     screenshot_paths = None
 
     if screenshot_dir:
@@ -64,9 +79,13 @@ def do_test(browser, name, url, screenshot_dir):
 
     if screenshot_paths:
         browser.execute_script('window.scrollTo(0, 0)')
+        time.sleep(randint(100, 500) / 1000)
         browser.get_screenshot_as_file(screenshot_paths[0])
         browser.execute_script('window.scrollTo(0, document.body.scrollHeight)')
+        time.sleep(randint(100, 500) / 1000)
         browser.get_screenshot_as_file(screenshot_paths[1])
+
+    print('=> "{:s}" with browser "{:s}" done'.format(url, browser_meta['name']))
 
 
 def get_browser(user_agent, window_size, geckodriver_path, log_path):
@@ -127,32 +146,43 @@ def main(mobile, desktop, url, geckodriver_path, screenshot_dir, log_dir):
         screenshot_dir = None
 
     print('=> fetching all urls from sitemap on "{:s}" and its children...'.format(url))
-    urls = get_urls(url)
 
-    if len(urls) <= 0:
-        print('\n=> error: No urls found, exiting')
+    loop = asyncio.get_event_loop()
+    urls = loop.run_until_complete(asyncio.gather(asyncio.ensure_future(load_sitemaps(url))))
+    #urls = [['http://orf.at', 'https://duernberg.at', 'https://felixklein.net']]
+    loop.close()
+
+    if not urls:
+        print('=> error: No urls found, exiting')
         exit(1)
+
+    if len(urls) <= 0 or len(urls[0]) <= 0:
+        print('=> error: No urls found, exiting')
+        exit(1)
+
+    urls = urls[0]
 
     print('==> found {:d} urls'.format(len(urls)))
 
-    for b in browsers:
-        print('=> initializing firefox...')
-        log_path = None
+    pool = multiprocessing.Pool(processes=2)
 
-        if log_dir:
-            log_path = log_dir.joinpath('{:s}.log'.format(b['name']))
+    print('=> initializing firefox...')
+    pool.map(partial(browser_run, urls, geckodriver_path, screenshot_dir, log_dir), browsers, 1)
 
-        browser = get_browser(b['user_agent'], b['window_size'], geckodriver_path, log_path)
+    pool.close()
+    pool.join()
 
-        for url in urls:
-            try:
-                print('=> visiting "{:s}" with browser "{:s}" ...'.format(url, b['name']), end='', flush=True)
 
-                do_test(browser, b['name'], url, screenshot_dir)
+def browser_run(urls, geckodriver_path, screenshot_dir, log_dir, browser):
+    log_path = None
 
-                print(' done')
-            except Exception as e:
-                print('\n==> Error: "{:s}"\n==> skipping "{:s}"'.format(str(e), url))
+    if log_dir:
+        log_path = log_dir.joinpath('{:s}.log'.format(browser['name']))
+
+    b = get_browser(browser['user_agent'], browser['window_size'], geckodriver_path, log_path)
+
+    for url in urls:
+        do_test(b, browser, browser['name'], geckodriver_path, screenshot_dir, log_path, url)
 
 
 if __name__ == '__main__':

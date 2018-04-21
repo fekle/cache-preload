@@ -1,4 +1,4 @@
-FROM ubuntu:latest AS deps
+FROM ubuntu:rolling AS deps
 WORKDIR /tmp
 ENV LANG='en_US.UTF-8' LC_ALL='en_US.UTF-8'
 
@@ -15,12 +15,12 @@ RUN wget -qO /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/rele
 
 # install pipenv dependencies
 COPY Pipfile.lock Pipfile ./
-RUN pipenv --site-packages --three install --system --deploy && pip --no-cache-dir uninstall -y pipenv
+RUN pipenv --site-packages --three install --system --deploy && pip3 --no-cache-dir uninstall -y pipenv
 
 # cleanup
 RUN apt-get autoremove -y && apt-get clean && apt-get autoclean && rm -rfv /var/lib/apt /var/cache /tmp
 
-FROM ubuntu:latest
+FROM ubuntu:rolling
 ENV LANG='en_US.UTF-8' LC_ALL='en_US.UTF-8'
 COPY --from=deps / /
 
