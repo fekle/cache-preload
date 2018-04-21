@@ -164,7 +164,7 @@ def main(mobile, desktop, url, geckodriver_path, screenshot_dir, log_dir):
 
     print('==> found {:d} urls'.format(len(urls)))
 
-    pool = multiprocessing.Pool(processes=2)
+    pool = multiprocessing.Pool(processes=1)
 
     print('=> initializing firefox...')
     pool.map(partial(browser_run, urls, geckodriver_path, screenshot_dir, log_dir), browsers, 1)
