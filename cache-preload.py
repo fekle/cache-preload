@@ -14,10 +14,12 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from slugify import slugify
 
-mobile_useragent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'
+googlebot_useragent = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+
+mobile_useragent = googlebot_useragent
 mobile_window_size = [375, 633]
 
-desktop_useragent = None
+desktop_useragent = googlebot_useragent
 desktop_window_size = [1920, 1080]
 
 
