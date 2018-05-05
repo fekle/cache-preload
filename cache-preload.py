@@ -154,7 +154,7 @@ def main(mobile, desktop, url, geckodriver_path, screenshot_dir, log_dir):
     #urls = [['http://orf.at', 'https://duernberg.at', 'https://felixklein.net']]
     loop.close()
 
-    if not urls:
+    if not urls or not urls[0]:
         print('=> error: No urls found, exiting')
         exit(1)
 
