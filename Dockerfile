@@ -1,4 +1,4 @@
-FROM ubuntu:rolling AS deps
+FROM ubuntu:18.04 AS deps
 WORKDIR /tmp
 ENV LANG='en_US.UTF-8' LC_ALL='en_US.UTF-8'
 
@@ -12,7 +12,6 @@ RUN apt-get update -qq && \
 RUN wget -qO /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-linux64.tar.gz && \
     tar xf /tmp/geckodriver.tar.gz -C /tmp && mv /tmp/geckodriver /usr/bin/geckodriver && chmod +x /usr/bin/geckodriver
 
-
 # install pipenv dependencies
 COPY Pipfile.lock Pipfile ./
 RUN pipenv --site-packages --three install --system --deploy && pip3 --no-cache-dir uninstall -y pipenv
@@ -20,7 +19,7 @@ RUN pipenv --site-packages --three install --system --deploy && pip3 --no-cache-
 # cleanup
 RUN apt-get autoremove -y && apt-get clean && apt-get autoclean && rm -rfv /var/lib/apt /var/cache /tmp
 
-FROM ubuntu:rolling
+FROM ubuntu:18.04
 ENV LANG='en_US.UTF-8' LC_ALL='en_US.UTF-8'
 COPY --from=deps / /
 
