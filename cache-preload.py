@@ -87,7 +87,7 @@ def do_test(browser, browser_meta, name, geckodriver_path, screenshot_dir, log_p
         time.sleep(randint(100, 500) / 1000)
         browser.get_screenshot_as_file(screenshot_paths[1])
 
-    print('=> "{:s}" with browser "{:s}" done'.format(url, browser_meta['name']))
+    print('==> "{:s}" with browser "{:s}" done'.format(url, browser_meta['name']))
 
 
 def get_browser(user_agent, window_size, geckodriver_path, log_path):
