@@ -14,12 +14,9 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from slugify import slugify
 
-googlebot_useragent = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-
-mobile_useragent = googlebot_useragent
-mobile_window_size = [375, 633]
-
-desktop_useragent = googlebot_useragent
+mobile_useragent = 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+mobile_window_size = [411, 731]
+desktop_useragent = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 desktop_window_size = [1920, 1080]
 
 
@@ -81,10 +78,10 @@ def do_test(browser, browser_meta, name, geckodriver_path, screenshot_dir, log_p
 
     if screenshot_paths:
         browser.execute_script('window.scrollTo(0, 0)')
-        time.sleep(randint(100, 500) / 1000)
+        time.sleep(randint(50, 100) / 1000)
         browser.get_screenshot_as_file(screenshot_paths[0])
         browser.execute_script('window.scrollTo(0, document.body.scrollHeight)')
-        time.sleep(randint(100, 500) / 1000)
+        time.sleep(randint(50, 100) / 1000)
         browser.get_screenshot_as_file(screenshot_paths[1])
 
     print('==> "{:s}" with browser "{:s}" done'.format(url, browser_meta['name']))
